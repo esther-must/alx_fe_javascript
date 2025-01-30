@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }  
     
-    async function syncQuote() {
+    async function syncQuotes() {
         const serverQuotes = await fetchQuotesFromServer();
         let localQuotes = JSON.parse(localStorage.getItem("quotes")) || [];
     
@@ -270,5 +270,5 @@ document.addEventListener("DOMContentLoaded", () => {
     
     notifyUser("Data synced with the server. Conflicts resolved where needed.");
 
-    setInterval(syncQuote, 30000);
+    setInterval(syncQuotes, 30000);
 });
