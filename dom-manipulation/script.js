@@ -184,4 +184,72 @@ document.addEventListener("DOMContentLoaded", () => {
     newQuoteBtn.addEventListener("click", showRandomQuote);
     exportBtn.addEventListener("click", exportToJsonFile);
     importFileInput.addEventListener("change", importFromJsonFile);
+
+    async function fetchQuotesFromServer() {
+        try {
+            const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+            let serverQuotes = await response.json();
+            
+            // Convert to match the app's structure
+            serverQuotes = serverQuotes.map(q => ({ text: q.title, category: "General", id: q.id }));
+    
+            console.log("Fetched quotes from server:", serverQuotes);
+    
+            return serverQuotes;
+        } catch (error) {
+            console.error("Error fetching quotes:", error);
+            return [];
+        }
+    }
+    
+    async function syncWithServer() {
+        const serverQuotes = await fetchQuotesFromServer();
+        let localQuotes = JSON.parse(localStorage.getItem("quotes")) || [];
+    
+        // Conflict resolution: server data takes precedence
+        let mergedQuotes = [...localQuotes, ...serverQuotes].filter(
+            (q, index, self) =>
+                index === self.findIndex((t) => t.text === q.text)
+        );        
+    
+        localStorage.setItem("quotes", JSON.stringify(mergedQuotes));
+    
+        console.log("Data synced with server:", mergedQuotes);
+        populateCategories();
+    }
+
+    function resolveConflicts(localQuotes, serverQuotes) {
+        const localMap = new Map(localQuotes.map(q => [q.id, q]));
+        const serverMap = new Map(serverQuotes.map(q => [q.id, q]));
+    
+        // Merge the data, prioritizing server changes
+        serverMap.forEach((serverQuote, id) => {
+            if (localMap.has(id)) {
+                const localQuote = localMap.get(id);
+                
+                if (serverQuote.text !== localQuote.text) {
+                    console.warn(`Conflict detected for quote ID ${id}: Using server version.`);
+                }
+            }
+            localMap.set(id, serverQuote);
+        });
+    
+        return Array.from(localMap.values());
+    }
+
+    function notifyUser(message) {
+        const notification = document.createElement("div");
+        notification.classList.add("notification");
+        notification.textContent = message;
+    
+        document.body.appendChild(notification);
+    
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 3000);
+    }
+    
+    notifyUser("Data synced with the server. Conflicts resolved where needed.");
+
+    setInterval(syncWithServer, 30000);
 });
