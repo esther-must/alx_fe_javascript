@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3000);
     }
     
-    notifyUser("Data synced with the server. Conflicts resolved where needed.");
+    notifyUser("Quotes synced with server!");
 
     setInterval(syncQuotes, 30000);
 });
