@@ -109,14 +109,15 @@ document.addEventListener("DOMContentLoaded", () => {
         quotes.push(newQuote);
         saveQuotes();
 
-        // If the new quote matches the current filter, update UI
-        if (categoryFilter.value === "all" || categoryFilter.value === newQuoteCategory) {
-            showRandomQuote(); 
-        }
+        // Post to the server
+        postQuoteToServer(newQuote);
+
+        // UI Update
+        showRandomQuote();
 
         document.getElementById("newQuoteText").value = "";
         document.getElementById("newQuoteCategory").value = "";
-        alert("New quote added successfully");
+        // alert("New quote added successfully");
     }
 
     function exportToJsonFile() {
@@ -201,6 +202,24 @@ document.addEventListener("DOMContentLoaded", () => {
             return [];
         }
     }
+
+    function postQuoteToServer(newQuote) {
+        fetch("https://jsonplaceholder.typicode.com/posts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newQuote)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Quote posted successfully:", data);
+            alert("Quote added and synced with server!");
+        })
+        .catch(error => {
+            console.error("Error posting quote:", error);
+        });
+    }  
     
     async function syncWithServer() {
         const serverQuotes = await fetchQuotesFromServer();
